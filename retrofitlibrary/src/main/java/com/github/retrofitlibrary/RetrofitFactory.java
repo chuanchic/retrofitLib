@@ -19,11 +19,11 @@ import okhttp3.logging.HttpLoggingInterceptor;
  * 网络请求工厂
  */
 public class RetrofitFactory {
-    private static final String TAG = RetrofitFactory.class.getName();
-    private static final long TIMEOUT = 30;
+    protected static final String TAG = RetrofitFactory.class.getName();
+    protected static final long TIMEOUT = 30;
 
     // Retrofit是基于OkHttpClient的，可以创建一个OkHttpClient进行一些配置
-    private static OkHttpClient httpClient = new OkHttpClient.Builder()
+    protected static OkHttpClient httpClient = new OkHttpClient.Builder()
             // 添加通用的Header
             .addInterceptor(new Interceptor() {
                 @Override
@@ -48,7 +48,7 @@ public class RetrofitFactory {
             .readTimeout(TIMEOUT, TimeUnit.SECONDS)
             .build();
 
-    private static Gson buildGson() {
+    protected static Gson buildGson() {
         return new GsonBuilder()
                 .serializeNulls()
                 .setFieldNamingPolicy(FieldNamingPolicy.IDENTITY)
