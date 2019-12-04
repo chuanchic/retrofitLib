@@ -1,9 +1,17 @@
 package com.github.retrofitlibrary;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import android.net.ParseException;
 
+import com.google.gson.JsonParseException;
+
+import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+import java.net.UnknownHostException;
+
+import javax.net.ssl.SSLHandshakeException;
 
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
@@ -23,10 +31,8 @@ public abstract class CommonObserver2 implements Observer<ResponseBody> {
     @Override
     public void onNext(ResponseBody value) {
         JSONObject joResult = null;
-//        boolean isSuccess = false;
         try {
             joResult = new JSONObject(value.string());
-//            isSuccess = true;
         }catch (Exception e){
             e.printStackTrace();
         }
@@ -35,40 +41,41 @@ public abstract class CommonObserver2 implements Observer<ResponseBody> {
 
     @Override
     public void onError(Throwable throwable) {
-//        boolean isSuccess = false;
-        ErrorMsgEntity errorMsgEntity = null;
-        if (throwable instanceof HttpException){
-            Response response = ((HttpException) throwable).response();
-            try {
-//                isSuccess = response.isSuccessful();
-                if(response.errorBody() != null){
-                    String errorBody = response.errorBody().string();
+        ErrorMsgEntity errorMsgEntity = new ErrorMsgEntity();
+        try {
+            if (throwable instanceof HttpException) {
+                Response response = ((HttpException) throwable).response();
+                JSONObject joBody = new JSONObject(response.errorBody().string());
 
-                    errorMsgEntity = jsonToObj(errorBody, ErrorMsgEntity.class);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
+                errorMsgEntity.setCode(ErrorMsgEntity.Code_Error_Api);
+                errorMsgEntity.setMsg(joBody.getString("msg"));
+            } else if (throwable instanceof ConnectException
+                    || throwable instanceof SocketTimeoutException
+                    || throwable instanceof UnknownHostException) {
+                errorMsgEntity.setCode(ErrorMsgEntity.Code_Error_Network);
+                errorMsgEntity.setMsg("网络错误");
+            } else if (throwable instanceof JsonParseException
+                    || throwable instanceof JSONException
+                    || throwable instanceof ParseException) {
+                errorMsgEntity.setCode(ErrorMsgEntity.Code_Error_Parse);
+                errorMsgEntity.setMsg("解析错误");
+            } else if (throwable instanceof SSLHandshakeException) {
+                errorMsgEntity.setCode(ErrorMsgEntity.Code_Error_SSLHandshake);
+                errorMsgEntity.setMsg("证书验证失败");
+            } else {
+                errorMsgEntity.setCode(ErrorMsgEntity.Code_Error_Unknown);
+                errorMsgEntity.setMsg("未知错误");
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            errorMsgEntity.setCode(ErrorMsgEntity.Code_Error_Unknown);
+            errorMsgEntity.setMsg("未知错误");
         }
         onHandleResult(null, errorMsgEntity);
     }
 
     @Override
     public void onComplete() {
-    }
-
-    /**
-     * 将json转化为实体类
-     */
-    private <T> T jsonToObj(String json, Class<T> obj) {
-        T t = null;
-        try {
-            Gson gson = new GsonBuilder().create();
-            t = gson.fromJson(json, obj);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return t;
     }
 
     protected abstract void onHandleResult(JSONObject joResult, ErrorMsgEntity errorMsgEntity);
