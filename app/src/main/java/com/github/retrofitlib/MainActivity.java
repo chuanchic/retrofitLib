@@ -24,7 +24,7 @@ public class MainActivity extends RxAppCompatActivity {
         MyPresenter.login(lifecycleTransformer, phone, authcode, "normal", null, new MyPresenter.LoginCallback() {
             @Override
             public void callback(JSONObject joResult) {
-                tv_userinfo.setText(joResult.toString());
+//                tv_userinfo.setText(joResult.toString());
             }
         });
     }
