@@ -2,10 +2,6 @@ package com.github.retrofitlibrary;
 
 import android.util.Log;
 
-import com.google.gson.FieldNamingPolicy;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
@@ -48,12 +44,4 @@ public class RetrofitFactory {
             .readTimeout(TIMEOUT, TimeUnit.SECONDS)
             .build();
 
-    protected static Gson buildGson() {
-        return new GsonBuilder()
-                .serializeNulls()
-                .setFieldNamingPolicy(FieldNamingPolicy.IDENTITY)
-                // 此处可以添加Gson 自定义TypeAdapter
-                //.registerTypeAdapter(UserEntity.class, new UserTypeAdapter())
-                .create();
-    }
 }
